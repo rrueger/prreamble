@@ -1,0 +1,1480 @@
+% Ryan Rueger, 2022
+%
+% Slogan: Preamble by Ryan Rueger, hence "pRReamble"
+%
+% Originally adopted from Manfred Einsiedler and Andreas Wieser's Analysis
+% script. Many changes and features have come since then, and so is perhaps not
+% so recognisable any more.
+%
+% For a not very up-to-date version of the documentation visit
+%
+%   https://rueg.re/prreamble.pdf
+%
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{prreamble}[2022/11/18 A preamble for mathematics]
+
+% Options {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% These packages are required for managing the options within this package.
+% Provides \ifdef, \*toggle* commmmands
+\RequirePackage{etoolbox}
+% Provides \ifluatex, \ifxetex
+\RequirePackage{iftex}
+% Provides \NewDocumentCommand
+\RequirePackage{xparse}
+
+\newtoggle{debug}
+\DeclareOption{debug}{\toggletrue{debug}}
+
+\newtoggle{nobreaks}
+\DeclareOption{nobreaks}{\toggletrue{nobreaks}}
+
+\newtoggle{printlinks}
+\DeclareOption{printlinks}{\toggletrue{printlinks}}
+
+\newtoggle{print}
+\DeclareOption{print}{%
+  \PassOptionsToPackage{draft}{hyperref}
+  \toggletrue{print}
+  \toggletrue{printlinks}
+}
+
+\newtoggle{centertitles}
+\DeclareOption{centertitles}{%
+  \toggletrue{centertitles}
+  \PassOptionsToPackage{center}{titlesec}
+}
+
+\newtoggle{centerstacktitles}
+\DeclareOption{centerstacktitles}{\toggletrue{centerstacktitles}}
+
+\newtoggle{concroman}
+\DeclareOption{concroman}{\toggletrue{concroman}}
+
+\newtoggle{concmath}
+\DeclareOption{concmath}{\toggletrue{concmath} \toggletrue{concroman}}
+
+\newtoggle{concbold}
+\DeclareOption{concbold}{\toggletrue{concbold} \toggletrue{concroman}}
+
+\newtoggle{euler}
+\DeclareOption{euler}{\toggletrue{euler}}
+
+\newtoggle{scdefs}
+\DeclareOption{scdefs}{\toggletrue{scdefs}}
+
+\newtoggle{scdefobjs}
+\DeclareOption{scdefobjs}{\toggletrue{scdefobjs}}
+
+\newtoggle{uldefs}
+\DeclareOption{uldefs}{\toggletrue{uldefs}}
+
+\newtoggle{uldefobjs}
+\DeclareOption{uldefobjs}{\toggletrue{uldefobjs}}
+
+\newtoggle{scthms}
+\DeclareOption{scthms}{\toggletrue{scthms}}
+
+\newtoggle{ulthms}
+\DeclareOption{ulthms}{\toggletrue{ulthms}}
+
+\newtoggle{scemph}
+\DeclareOption{scemph}{\toggletrue{scemph}}
+
+\newtoggle{milne}
+\DeclareOption{milne}{\toggletrue{milne}}
+
+% Original
+\newtoggle{original}
+\DeclareOption{original}{%
+  \toggletrue{original}
+  \toggletrue{concroman}
+  \toggletrue{euler}
+}
+
+% Classic
+\newtoggle{classic}
+\DeclareOption{classic}{%
+  \toggletrue{classic}
+  \toggletrue{concbold}
+  \toggletrue{concroman}
+  \toggletrue{concmath}
+
+  \toggletrue{scdefobjs}
+  \toggletrue{scemph}
+  \toggletrue{uldefs}
+  \toggletrue{ulthms}
+
+  \toggletrue{centertitles}
+  \PassOptionsToPackage{center}{titlesec}
+}
+
+% Modern
+\newtoggle{modern}
+\DeclareOption{modern}{%
+  \toggletrue{modern}
+  \toggletrue{concroman}
+  \toggletrue{concmath}
+}
+
+\newtoggle{beamer}
+\DeclareOption{beamer}{\toggletrue{beamer}}
+
+\newtoggle{nomath}
+\DeclareOption{nomath}{\togglefalse{nomath}}
+
+\newtoggle{noletters}
+\DeclareOption{noletters}{\toggletrue{noletters}}
+
+\DeclareOption*{\PackageWarning{prreamble}{Unknown '\CurrentOption'}}
+\ProcessOptions\relax
+
+\iftoggle{ulthms}{\iftoggle{scthms}{%
+  \PackageWarning{prreamble}{Both ulthms and scthms was specified}
+}{}}{}
+
+\iftoggle{uldefs}{\iftoggle{scdefs}{%
+    \PackageWarning{prreamble}{Both uldefs and scdefs was specified}
+}{}}{}
+
+\iftoggle{uldefobjs}{\iftoggle{scdefobjs}{%
+  \PackageWarning{prreamble}{Both uldefobjs and scdefobjs was specified}
+}{}}{}
+
+\iftoggle{concmath}{\iftoggle{euler}{%
+  \PackageWarning{prreamble}{Cannot use concmath and euler together}
+}{}}{}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Context {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% This preamble was initially developed by Andreas Wieser, Prof. Manfred
+% Einsiedler and a host of others
+%
+% To generate a ``clean'' version of this preamble, it can be piped through
+% `sed`
+%
+% This clean version will not have any comments
+%
+% $ sed -e '/^%/d' -e '/^\s*$/d' -e 's/\s*%.*$//' preamble.tex > clean-preamble.tex
+%
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% How to use this package {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Here is a boilerplate example for using this preamble.
+%
+% The \documentclass is purposely _not_ defined in this preamble, and thus must
+% be defined in the document before \inputting the preamble.
+%
+% \documentclass[11pt,a4paper,oneside]{article}
+% \input{preamble}
+% \begin{document}
+% ...
+% \end{document}
+
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Default packages and configurations {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Descriptions obtained from CTAN
+
+\newtoggle{geometryloadedbefore}
+\ifdef{\newgeometry}{\toggletrue{geometryloadedbefore}}{}
+
+\AtEndPreamble{%
+  % If geometry is loaded
+  \ifdef{\newgeometry}{%
+    % But it wasn't loaded before prreamble
+    \nottoggle{geometryloadedbefore}{%
+      \PackageWarning{prreamble}{geometry was loaded after prreamble}
+    }{}
+  }{}
+}
+
+\ifluatex \else \ifxetex \else
+    \RequirePackage[utf8]{inputenc}
+    % Standard package for selecting font encodings
+    % https://www.ctan.org/pkg/fontenc
+    % Including Cyrllic encodings (T2{A,B,C}) later comes into conflict with the
+    % \C command.
+    \RequirePackage[T1]{fontenc}
+\fi \fi
+
+% Standard mathematics packages
+\RequirePackage{amsmath}
+\RequirePackage{amscd}
+\RequirePackage{amsfonts}
+\RequirePackage{amsthm}
+% Pre-defined colors
+% https://www.ctan.org/pkg/xcolor
+\RequirePackage{xcolor}
+\definecolor{maroon}{cmyk}{0, 0.87, 0.68, 0.32}
+\colorlet{ochre}{brown}
+\newcommand{\purple}[1]{{\color{violet} #1}}
+\newcommand{\violet}[1]{{\color{violet} #1}}
+\newcommand{\green}[1]{{\color{teal} #1}}
+\newcommand{\teal}[1]{{\color{teal} #1}}
+\newcommand{\red}[1]{{\color{red} #1}}
+\newcommand{\ochre}[1]{{\color{ochre} #1}}
+\newcommand{\maroon}[1]{{\color{maroon} #1}}
+\newcommand{\blue}[1]{{\color{blue} #1}}
+\nottoggle{beamer}{%
+  % Hyperref - Extensive support for hypertext in LaTeX
+  % Needs to be included _before_ amsrefs!
+  \RequirePackage[
+    hidelinks,
+    colorlinks=true,
+    allcolors=maroon,
+    unicode,
+  ]{hyperref}
+}{}
+% AMS alternative to bibtex. Allows for bibliography in the same source file as
+% the main file.
+\RequirePackage[lite,backrefs]{amsrefs}
+
+% Mathtools - Mathematical tools to use with amsmath
+% Must be loaded _before_ unicode-math
+% Provides: \hookrightarrow, ...
+% https://www.ctan.org/pkg/mathtools
+\RequirePackage{mathtools}
+\PassOptionsToPackage{warnings-off={mathtools-colon,mathtools-overbracket}}{unicode-math}
+
+% Fontspec - Advanced font selection in XeLaTeX and LuaLaTeX
+% https://ctan.org/pkg/fontspec
+\iftoggle{milne}{%
+  \RequirePackage{newtx}
+}{%
+  \RequirePackage{fontspec}
+}
+
+\iftoggle{concroman}{%
+  % concroman
+  \iftoggle{concmath}{%
+    \iftoggle{concbold}{%
+      % concmath and concbold
+      \RequirePackage[math-style=ISO]{concmath-otf}
+    }{%
+      % concmath and !concbold
+      \RequirePackage{unicode-math}
+      \setmathfont{Concrete Math}[math-style=ISO]
+      \setmainfont{cmunorm.otf}[
+        BoldFont=lmroman9-bold.otf,
+        ItalicFont=cmunoti.otf,
+        BoldItalicFont=cmunobi.otf
+      ]
+    }
+    % Steal the \setminus command from Asana-Math
+    % Needs to come after getting concmath font from concmath-otf
+    \setmathfont{Asana-Math.otf}[range={"029F5}]
+  }{%
+    \iftoggle{concbold}{%
+        % !concmath and concbold
+        \setmainfont{cmunorm.otf}[
+          BoldFont=cmunobx.otf,
+          ItalicFont=cmunoti.otf,
+          BoldItalicFont=cmunobi.otf
+        ]
+      }{%
+        % !concmath and !concbold
+        \setmainfont{cmunorm.otf}[
+          BoldFont=lmroman9-bold.otf,
+          ItalicFont=cmunoti.otf,
+          BoldItalicFont=cmunobi.otf
+        ]
+    }
+  }
+  \newcommand{\graffito}[1]{%
+    \marginpar{\fontspec{ccslc9.tfm}\raggedright\footnotesize\color{maroon}#1}
+  }
+}{%
+  % !concroman
+  \newcommand{\graffito}[1]{%
+    \marginpar{\fontspec{lmmonoltcond10-oblique.otf}\raggedright\footnotesize\color{maroon}#1}
+  }
+  \nottoggle{milne}{%
+    \RequirePackage{amssymb}
+  }{}
+}
+
+\iftoggle{euler}{%
+  \RequirePackage{euler-math}
+  \setmathfont{STIXTwoMath-Regular.otf}[range=sfup,Scale=MatchUppercase]
+}{}
+
+% If the scemph option is configured, use schape instead of bold.
+\iftoggle{scemph}{%
+  \renewcommand{\textbf}{\textsc}
+}{}
+
+% Macros supporting the Mathematics of Physics
+% Provides: \evaluated
+\RequirePackage{physics}
+% Typeset mathematical double stroke symbols
+% Provides: \mathbb, \mathds
+% https://www.ctan.org/tex-archive/fonts/doublestroke
+\RequirePackage{dsfont}
+% Enumerate with redefinable labels
+% Provides: \enumerate
+% https://www.ctan.org/pkg/enumerate
+\RequirePackage{enumerate}
+% Extensive control of page headers and footers
+% https://www.ctan.org/pkg/fancyhdr
+\nottoggle{beamer}{%
+  \RequirePackage{fancyhdr}
+  \AtBeginDocument{\addtolength{\headheight}{1ex}}
+  % Indent first paragraph after section header
+  % (Default is to indent all but the first)
+  % https://www.ctan.org/pkg/indentfirst
+  % \RequirePackage{indentfirst}
+  % Print text verbatim (useful for code snippet)
+  % https://ctan.org/pkg/indentfirst?lang=en
+}{}
+\RequirePackage{verbatim}
+\nottoggle{beamer}{%
+  % Enhanced support for graphics
+  % https://www.ctan.org/pkg/graphicx
+  \RequirePackage[final]{graphicx}
+}{}
+% Create PostScript and PDF graphics
+% Include after: graphicx, xcolor
+% https://www.ctan.org/pkg/pgf
+\RequirePackage{tikz}
+\usetikzlibrary{angles,arrows,calc,decorations.pathmorphing,matrix,shapes}
+% Create commutative diagrams with TikZ
+% https://ctan.org/pkg/tikz-cd
+\RequirePackage{tikz-cd}
+% Select any font size in LaTeX
+% https://ctan.org/pkg/anyfontsize
+% This essentially fixes 'Font shape ... not available in size ...' errors
+\RequirePackage{anyfontsize}
+\nottoggle{beamer}{%
+  % A package for producing multiple indexes
+  \RequirePackage{imakeidx}
+  \indexsetup{firstpagestyle=empty}
+  % Change index for larger index items
+  \renewcommand{\@idxitem}{\par\hangindent 10\p@}
+  % Ensure the index is created
+  \makeindex
+}{}
+% Force footnotes to the bottom of the page
+% https://www.ctan.org/pkg/footmisc
+\RequirePackage[bottom]{footmisc}
+% https://www.ctan.org/pkg/soul
+% Hyphenation for letterspacing, underlining, and more
+\RequirePackage{soul}
+% Override \underline with more robust underlining
+% Standard \underline cannot perform line breaks
+\let\defaultunderline\underline
+\renewcommand{\underline}{\ul}
+% Intermix single and multiple columns
+% https://www.ctan.org/pkg/multicol
+% For breaking long calculations into columns
+\RequirePackage{multicol}
+% Typeset source code listings using LaTeX
+% https://www.ctan.org/pkg/listings
+\RequirePackage{listings}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.98,0.98,0.98}
+\lstdefinestyle{mystyle}{%
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+}
+\lstset{style=mystyle}
+
+% Framed environments that can split at page boundaries
+% Used for defining new environments
+% https://www.ctan.org/pkg/mdframed
+\RequirePackage{mdframed}
+\newmdenv[
+  topline=false,
+  bottomline=false,
+  rightline=false,
+  skipabove=\topsep,
+  skipbelow=\topsep,
+  innertopmargin=1pt,
+  innerbottommargin=1pt,
+]{siderules}
+\newmdenv[
+  topline=true,
+  bottomline=true,
+  rightline=true,
+  leftline=true,
+  skipabove=\topsep,
+  skipbelow=\topsep,
+  innertopmargin=1ex,
+  innerbottommargin=1ex,
+]{fullrules}
+
+% Honourable mentions for packages which have been used in this preamble at some
+% point in time.
+%
+% \RequirePackage{caption}
+% \RequirePackage{comment}
+% \RequirePackage{faktor}
+% \RequirePackage{float}
+% \RequirePackage{import}
+% \RequirePackage{pdfpages}
+% \RequirePackage{subcaption}
+% \RequirePackage{transparent}
+% \RequirePackage{url}
+% \RequirePackage{xifthen}
+% \RequirePackage{xspace}
+% \RequirePackage{pgfplots}
+% \pgfplotsset{width=12cm,compat=1.9}
+% \usepgfplotslibrary{external}
+% \RequirePackage{wasysym}
+
+% The 'quotes' tikzlibrary, i.e. \usetikzlibrary{...,quotes}.
+
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Page Layout: Setting white space {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{setspace}
+\iftoggle{concroman}{%
+  \iftoggle{classic}{%
+    \setstretch{1.75}
+  }{%
+    \setstretch{1.15}
+  }
+}{%
+  \setstretch{1.1}
+}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Page Layout: Geometry (deprecated) {{{{{
+% Dynamically set margins for different page sizes.
+% \newcommand\papersize[1]{%
+%   TT\fi
+%   \uppercase{\ifdim\csname #1@PAPER\endcsname}=\paperheight
+% }
+%
+% \makeatletter
+% \@namedef{A4@PAPER}{297mm}
+% \@namedef{A5@PAPER}{210mm}
+% \@namedef{B5@PAPER}{250mm}
+% \@namedef{LETTER@PAPER}{11in}
+% \@namedef{LEGAL@PAPER}{14in}
+% \@namedef{EXECUTIVE@PAPER}{10.5in}
+% \makeatother
+
+% \if\papersize{a4}
+%   % Required to be able to set the page size
+%   \RequirePackage[
+%     left=1.35in,
+%     right=1.35in,
+%     top=1.35in,
+%     bottom=1.35in,
+%     headheight=20pt,
+%     headsep=0.3in,
+%     footskip=0.5in
+%   ]{geometry}
+% \fi
+
+% \if\papersize{a5}
+%   % Required to be able to set the page size
+%   \RequirePackage[
+%     left=0.6in,
+%     top=0.575in,
+%     right=.6in,
+%     bottom=0.55in,
+%     headheight=20pt,
+%     headsep=0.1in,
+%     footskip=0.15in
+%   ]{geometry}
+% \fi
+% }}}}}
+% Page Layout: Title page {{{{{
+% horizontal double rule top
+\newcommand{\hdrulet}{\vspace{3ex}\rule{\textwidth}{1.6pt}\vspace*{-\baselineskip}\vspace*{2pt}\newline\rule{\textwidth}{0.4pt} \\ \vspace{1ex}}
+% horizontal double rule bottom
+\newcommand{\hdruleb}{\vspace{1ex}\rule{\textwidth}{0.4pt}\vspace*{-\baselineskip}\vspace{3.2pt}\newline\rule{\textwidth}{1.6pt} \\ \vspace{3ex}}
+% horizontal (single) rule top
+\newcommand{\hrulet}{\vspace{3ex}\rule{\textwidth}{1.6pt} \\ \vspace{1ex}}
+% horizontal (single) rule bottom
+\newcommand{\hruleb}{\vspace{1ex}\rule{\textwidth}{1.6pt} \\ \vspace{3ex}}
+% Double ruled title
+\newcommand{\dTitle}[1]{~\\\hdrulet{\Large\textbf{#1}\\}\hdruleb~\\}
+
+\newcommand{\PlainTitleLogo}[5]{%
+  \AtBeginDocument{%
+    \thispagestyle{empty}
+    \begin{center}
+      \includegraphics{#1} \\
+      \vspace{27.1728ex}
+      \iftoggle{concroman}{ { \MakeUppercase{#2} \\ } }{ #2 }
+      \vspace{12ex}
+      \, #3 \\
+      \vspace{10ex}
+      \iftoggle{concroman}{ {\large \MakeUppercase{#4}  \\ } }{ {\large #4 \\ } }
+    \end{center}
+    \vfill
+    {\large \raggedright \parindent0pt #5 \vspace{10ex}}
+  }
+}
+
+\newcommand{\PlainTitleLogoExtra}[6]{%
+  \AtBeginDocument{%
+    \thispagestyle{empty}
+    \begin{center}
+      \includegraphics{#1} \\
+      \vspace{12.1728ex}
+      \iftoggle{concroman}{ { \MakeUppercase{#2} \\ } }{ #2 }
+      \vspace{12.1728ex}
+      #5
+      \vspace{12ex}
+      \, #3 \\
+      \vspace{10ex}
+      \iftoggle{concroman}{ {\large \MakeUppercase{#4}  \\ } }{ {\large #4 \\ } }
+    \end{center}
+    \vfill
+    {\large \raggedright \parindent0pt #6 \vspace{6ex}}
+  }
+}
+
+\newcommand{\PlainTitleName}[5]{%
+  \iftoggle{concroman}{%
+    \AtBeginDocument{%
+      \thispagestyle{empty}
+      \begin{center}
+        {\LARGE #1} \\
+        \vspace{12.1728ex}
+        {\Huge #2 \\ }
+        \vspace{12ex}
+        \, #3 \\
+        \vspace{10ex}
+        {\LARGE #4\\ }
+      \end{center}
+      \vfill
+      {\large \parindent0pt \begin{flushleft} \iftoggle{concroman}{\iftoggle{classic}{\setstretch{1.75}}{\setstretch{1.1}}}{\setstretch{1.1}} #5 \end{flushleft} \vspace{10ex}}
+    }
+  }{}
+}
+
+\newcommand{\PlainTitle}[4]{%
+  \iftoggle{concroman}{%
+    \AtBeginDocument{%
+      \thispagestyle{empty}
+      \begin{center}
+        \vspace{12.1728ex}
+        {\Huge #1 \\ }
+        \vspace{12ex}
+        \, #2 \\
+        \vspace{10ex}
+        {\LARGE #3\\ }
+      \end{center}
+      \vfill
+      {\large \parindent0pt \begin{flushleft} \iftoggle{concroman}{\iftoggle{classic}{\setstretch{1.75}}{\setstretch{1.1}}}{\setstretch{1.1}} #4 \end{flushleft} \vspace{10ex}}
+    }
+  }{}
+}
+
+\newcommand{\PlainTitleShort}[4]{%
+  \AtBeginDocument{%
+    \thispagestyle{empty}
+    \begin{center}
+
+      \vspace{10.36ex}
+
+      #1
+
+      \vspace{3.456ex}
+
+      {\bfseries #2}
+
+      \vspace{3.456ex}
+
+      #3
+
+      \vspace{5.184ex}
+
+      #4
+    \end{center}
+  }
+}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Page Layout: Justification rules {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \doublehyphendemerits=10000    % No consecutive line hyphens.
+% \brokenpenalty=10000           % No broken words across columns/pages.
+% \widowpenalty=9999             % Almost no widows at bottom of page.
+% \clubpenalty=9999              % Almost no orphans at top of page.
+% \interfootnotelinepenalty=9999 % Almost never break footnotes.
+% \binoppenalty=9999             % Almost never break binary operators.
+% \relpenalty=9999               % Almost never break binary relations.
+\iftoggle{nobreaks}{}{%
+  \let\defaultldots\ldots
+  \renewcommand{\ldots}{\allowbreak\defaultldots\allowbreak}
+}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\nottoggle{beamer}{%
+% Page Layout: Headers and footers {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Set pagestyle to be fancy as default in whole of document
+\pagestyle{fancy}
+% Clear old settings for headers and footers
+\fancyhf{}
+% Set headers and footers in document with
+% \lhead{} \chead{} \rhead{}
+% \lfoot{} \cfoot{} \rfoot{}
+% Set line width for header and footer
+\AtBeginDocument{\renewcommand{\headrulewidth}{0.5pt}}
+\AtBeginDocument{\renewcommand{\footrulewidth}{0.5pt}}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+}{}
+% Page Layout: Titles {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\nottoggle{beamer}{%
+  \RequirePackage{titlesec}
+  \iftoggle{centerstacktitles}{%
+    \titleformat{\section}[display]{\Large\filcenter}{\thesection}{0.5ex}{\bfseries}
+  }{}
+}{}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Page Layout: Whitespace around align (display) environments {{{{{
+\AtBeginDocument{\addtolength{\abovedisplayskip}{-1.25ex}}
+\AtBeginDocument{\addtolength{\belowdisplayskip}{-1ex}}
+\AtBeginDocument{\addtolength{\abovedisplayshortskip}{-1.25ex}}
+\AtBeginDocument{\addtolength{\belowdisplayshortskip}{-1ex}}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Page Layout: Whitespace around center environments {{{{{
+\let\defaultcenter\center
+\let\defaultendcenter\endcenter
+\renewenvironment{center}{\setlength\topsep{0.2em}\defaultcenter}{\defaultendcenter}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Generic tools {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% When referencing lists, often we need two write things such as
+% "\textit{(iii)}" which is long. This macro "enumerated reference" makes it
+% easier.
+% Usage: \eref{<n>}
+% Example: \eref{3}
+\newcommand{\eref}[1]{(\romannumeral#1)}
+
+% Using this macro allows us to change our mind on the style of definitions
+% after the fact. For example, one could easily switch from italic to bold text.
+% Usage: \define[[index]]{<text>}
+% Example: A map is \define{continuous} if ...
+% Example: A polynomial is \define[homogeneous polynomial]{homogeneous} if ...
+\iftoggle{uldefobjs}{%
+  \NewDocumentCommand\define{o m}{%
+    \IfNoValueTF{#1}{\underline{#2}\index{#2}}{\underline{#2}\index{#1}}}
+}{%
+  \iftoggle{scdefobjs}{%
+    \NewDocumentCommand\define{o m}{%
+      \IfNoValueTF{#1}{{\normalfont \textsc{#2}}\index{#2}}{\textsc{#2}\index{#1}}}
+  }{%
+    \iftoggle{milne}{%
+      \NewDocumentCommand\define{o m}{%
+        \IfNoValueTF{#1}{\textbf{\emph{#2}}\index{#2}}{\textbf{\emph{#2}}\index{#1}}}
+    }{%
+      \NewDocumentCommand\define{o m}{%
+        \IfNoValueTF{#1}{\emph{#2}\index{#2}}{\emph{#2}\index{#1}}}
+    }
+  }
+}
+
+% Middle Text Ascii Tilde. The default is too high, an appears above the
+% character.
+\iftoggle{concroman}{%
+  \newcommand{\mtextasciitilde}{\raisebox{-0.75ex}{\textasciitilde}}
+}{%
+  \newcommand{\mtextasciitilde}{\textasciitilde}
+}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\nottoggle{beamer}{%
+% Maths Environments {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% 1. \newtheorem{<Internal name>}{<External name>}[<env>]
+%    Is counted after <env>. e.g.
+%    \newtheorem{corollary}{Corollary}[theorem]
+%    Theorem 1 is succeeded by Corollary 1.2
+% 2. \newtheorem{<Internal name>}[<env>]{<External name>}[<env>]
+%    \newtheorem{corollary}[theorem]{Corollary}
+%    Is shares counter with <env>. i.e. Theorem 1 is succeeded by Corollary 2
+
+% Declare a new theoremstyle
+% \newtheoremstyle{mystyle}%
+%    {3pt}                   % Space above
+%    {3pt}                   % Space below
+%    {\itshape\color{red}}   % Body font
+%    {}                      % Indent amount
+%    {\bfseries\color{blue}} % Theorem head font
+%    {.}                     % Punctuation after theorem head
+%    {.5em}                  % Space after theorem head
+%    {}                      % Theorem head spec (can be left empty, meaning 'normal')
+%
+% Numbering of environments example
+% If we define
+%
+%   \newtheorem*{proposition*}{Proposition}
+%   \newtheorem{proposition-extra}{Proposition*}
+%
+% then calling
+%
+%   \begin{proposition*}
+%     ...
+%   \end{proposition*}
+%
+% Will create a non-numbered proposition (e.g. for a famous named theorem that
+% will never be referenced to by a number: When 'The Heine-Borel' theorem will
+% always be said, and not 'Theorem 3.14').
+%
+% and calling
+%
+%   \begin{proposition-extra}
+%      ...
+%   \end{proposition-extra}
+%
+% will create a numbered proposition that is printed with a star (e.g. for
+% extracurricular material).
+
+% \underline is actually \ul from the soul package
+% soul does not allow expanding text as an argument, unless it is wrapped in an
+% \mbox call
+\newtheoremstyle{ultheorem}%
+   {3pt}        % Space above
+   {3pt}        % Space below
+   {\itshape}   % Body font
+   {}           % Indent amount
+   {}           % Theorem head font
+   {.}          % Punctuation after theorem head
+   {.5em}       % Space after theorem head
+   {\underline{\mbox{\thmname{#1}\thmnumber{ #2}}}\thmnote{ (#3)}} % Theorem head spec (can be left empty, meaning 'normal')
+
+\newtheoremstyle{sctheorem}%
+   {3pt}        % Space above
+   {3pt}        % Space below
+   {\itshape}   % Body font
+   {}           % Indent amount
+   {\scshape}   % Theorem head font
+   {.}          % Punctuation after theorem head
+   {.5em}       % Space after theorem head
+   {} % Theorem head spec (can be left empty, meaning 'normal')
+
+% \underline is actually \ul from the soul package
+% soul does not allow expanding text as an argument, unless it is wrapped in an
+% \mbox call
+\newtheoremstyle{uldefinition}%
+   {3pt}        % Space above
+   {3pt}        % Space below
+   {}           % Body font
+   {}           % Indent amount
+   {}           % Theorem head font
+   {.}          % Punctuation after theorem head
+   {.5em}       % Space after theorem head
+   {\underline{\mbox{\thmname{#1}\thmnumber{ #2}}}\thmnote{ (#3)}} % Theorem head spec (can be left empty, meaning 'normal')
+
+\newtheoremstyle{scdefinition}%
+   {3pt}        % Space above
+   {3pt}        % Space below
+   {}           % Body font
+   {}           % Indent amount
+   {\scshape}   % Theorem head font
+   {.}          % Punctuation after theorem head
+   {.5em}       % Space after theorem head
+   {} % Theorem head spec (can be left empty, meaning 'normal')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Theorems
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\iftoggle{ulthms}{%
+  \theoremstyle{ultheorem}
+}{%
+  \iftoggle{scthms}{%
+    \theoremstyle{sctheorem}
+  }{%
+    \theoremstyle{plain}
+  }
+}
+
+% Base number off chapter if documentclass 'book' is selected, else use
+% sections.
+% This is crudely done by checking if the command '\chapter' exists.
+
+% For some reason, if one tries to do this via
+% \ifdef{\chapter} ...
+% the compilation fails
+
+\ifundef{\chapter}{%
+  \newtheorem{theorem}{Theorem}[section]
+  \numberwithin{equation}{section}
+  \numberwithin{figure}{section}
+}{%
+  \newtheorem{theorem}{Theorem}[chapter]
+  \numberwithin{equation}{chapter}
+  \numberwithin{figure}{chapter}
+}
+
+\newtheorem*{theorem*}{Theorem}
+\newtheorem{theorem-extra}{Theorem*}
+
+% Number propositions after theorems
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{counterexample}[theorem]{Counterexample}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{generic-corollary}[theorem]{Corollary}
+\newtheorem{important-exercise}[theorem]{Important Exercise}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{construction}[theorem]{Construction}
+\newtheorem{propose}[theorem]{Propose}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{reminder}[theorem]{Reminder}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{important-remark}[theorem]{Remark}
+
+% Numbered, but starred
+\newtheorem{propose-extra}[theorem]{Propose*}
+\newtheorem{proposition-extra}[theorem]{Proposition*}
+\newtheorem{lemma-extra}[theorem]{Lemma*}
+
+% Non-numbered
+\newtheorem*{corollary*}{Corollary}
+\newtheorem*{counterexample*}{Counterexample}
+\newtheorem*{example*}{Example}
+\newtheorem*{exercise*}{Exercise}
+\newtheorem*{fact}{Fact}
+\newtheorem*{fact*}{Fact}
+\newtheorem*{lemma*}{Lemma}
+\newtheorem*{propose*}{Propose}
+\newtheorem*{proposition*}{Proposition}
+\newtheorem*{construction*}{Construction}
+\newtheorem*{important-remark*}{Remark}
+
+% Always return to plain
+\theoremstyle{plain}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Remarks
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{remark}
+
+% Numbered remark (for referencing)
+\newtheorem{nremark}[theorem]{Remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{Metaremark}{Thesis remark}
+
+% Always return to plain
+\theoremstyle{plain}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Definitions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\iftoggle{uldefs}{%
+  \theoremstyle{uldefinition}
+}{%
+  \iftoggle{scdefs}{%
+    \theoremstyle{scdefinition}
+  }{%
+    \theoremstyle{definition}
+  }
+}
+
+% Numbered after theorem
+\newtheorem{algorithm}[theorem]{Algorithm}
+\newtheorem{defining}[theorem]{Defining}
+\newtheorem{definition-define}[theorem]{Define}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{definition-extra}[theorem]{Definition*}
+\newtheorem{notation}[theorem]{Notation}
+
+% Non-numbered
+\newtheorem*{definition*}{Definition}
+\newtheorem*{definition-extra*}{Definition*}
+
+% Always return to plain
+\theoremstyle{plain}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lecture counter {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Create a lecture counter that can be invoked to create a note in the margin
+% listing the lecture number and the date.
+% Usage: \lecture{<Date>}
+% Example: \lecture{1970.01.01}
+\newcounter{lecture}
+\newcommand{\lecture}[1]{%
+  \stepcounter{lecture}
+  \marginpar{\color{orange}\flushleft{\footnotesize Lecture: \thelecture{} #1}}
+}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+}{}
+% Printable links {{{{{
+\newcommand{\phref}[2]{\iftoggle{printlinks}{\href{#1}{#2}\footnote{#1}}{\href{#1}{#2}}}
+% }}}}}
+
+% Mathematical notation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\nottoggle{noletters}{
+% Special Letters {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% For faster typesetting of the blackboard letters
+\newcommand{\bA}{\mathbb{A}}
+\newcommand{\bB}{\mathbb{B}}
+\newcommand{\bC}{\mathbb{C}}
+\newcommand{\bD}{\mathbb{D}}
+\newcommand{\bE}{\mathbb{E}}
+\newcommand{\bF}{\mathbb{F}}
+\newcommand{\bG}{\mathbb{G}}
+\newcommand{\bH}{\mathbb{H}}
+\newcommand{\bI}{\mathbb{I}}
+\newcommand{\bJ}{\mathbb{J}}
+\newcommand{\bK}{\mathbb{K}}
+\newcommand{\bL}{\mathbb{L}}
+\newcommand{\bM}{\mathbb{M}}
+\newcommand{\bN}{\mathbb{N}}
+\newcommand{\bO}{\mathbb{O}}
+\newcommand{\bP}{\mathbb{P}}
+\newcommand{\bQ}{\mathbb{Q}}
+\newcommand{\bR}{\mathbb{R}}
+\newcommand{\bS}{\mathbb{S}}
+\newcommand{\bT}{\mathbb{T}}
+\newcommand{\bU}{\mathbb{U}}
+\newcommand{\bV}{\mathbb{V}}
+\newcommand{\bW}{\mathbb{W}}
+\newcommand{\bX}{\mathbb{X}}
+\newcommand{\bY}{\mathbb{Y}}
+\newcommand{\bZ}{\mathbb{Z}}
+
+% For faster typesetting of the calligraphic letters
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cG}{\mathcal{G}}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\cI}{\mathcal{I}}
+\newcommand{\cJ}{\mathcal{J}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\cO}{\mathcal{O}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cQ}{\mathcal{Q}}
+\newcommand{\cR}{\mathcal{R}}
+\newcommand{\cS}{\mathcal{S}}
+\newcommand{\cT}{\mathcal{T}}
+\newcommand{\cU}{\mathcal{U}}
+\newcommand{\cV}{\mathcal{V}}
+\newcommand{\cW}{\mathcal{W}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\cY}{\mathcal{Y}}
+\newcommand{\cZ}{\mathcal{Z}}
+
+% For faster typesetting of the fraction letters
+\newcommand{\fa}{\mathfrak{a}}
+\newcommand{\fb}{\mathfrak{b}}
+\newcommand{\fc}{\mathfrak{c}}
+\newcommand{\fd}{\mathfrak{d}}
+\newcommand{\fe}{\mathfrak{e}}
+\newcommand{\ff}{\mathfrak{f}}
+\newcommand{\fg}{\mathfrak{g}}
+\newcommand{\fh}{\mathfrak{h}}
+% \newcommand{\fi}{\mathfrak{i}}
+\newcommand{\fj}{\mathfrak{j}}
+\newcommand{\fk}{\mathfrak{k}}
+\newcommand{\fl}{\mathfrak{l}}
+\newcommand{\fm}{\mathfrak{m}}
+\newcommand{\fn}{\mathfrak{n}}
+\newcommand{\fo}{\mathfrak{o}}
+\newcommand{\fp}{\mathfrak{p}}
+\newcommand{\fq}{\mathfrak{q}}
+\newcommand{\fr}{\mathfrak{r}}
+\newcommand{\fs}{\mathfrak{s}}
+\newcommand{\ft}{\mathfrak{t}}
+\newcommand{\fu}{\mathfrak{u}}
+\newcommand{\fv}{\mathfrak{v}}
+\newcommand{\fw}{\mathfrak{w}}
+\newcommand{\fx}{\mathfrak{x}}
+\newcommand{\fy}{\mathfrak{y}}
+\newcommand{\fz}{\mathfrak{z}}
+
+\newcommand{\fA}{\mathfrak{A}}
+\newcommand{\fB}{\mathfrak{B}}
+\newcommand{\fC}{\mathfrak{C}}
+\newcommand{\fD}{\mathfrak{D}}
+\newcommand{\fE}{\mathfrak{E}}
+\newcommand{\fF}{\mathfrak{F}}
+\newcommand{\fG}{\mathfrak{G}}
+\newcommand{\fH}{\mathfrak{H}}
+\newcommand{\fI}{\mathfrak{I}}
+\newcommand{\fJ}{\mathfrak{J}}
+\newcommand{\fK}{\mathfrak{K}}
+\newcommand{\fL}{\mathfrak{L}}
+\newcommand{\fM}{\mathfrak{M}}
+\newcommand{\fN}{\mathfrak{N}}
+\newcommand{\fO}{\mathfrak{O}}
+\newcommand{\fP}{\mathfrak{P}}
+\newcommand{\fQ}{\mathfrak{Q}}
+\newcommand{\fR}{\mathfrak{R}}
+\newcommand{\fS}{\mathfrak{S}}
+\newcommand{\fT}{\mathfrak{T}}
+\newcommand{\fU}{\mathfrak{U}}
+\newcommand{\fV}{\mathfrak{V}}
+\newcommand{\fW}{\mathfrak{W}}
+\newcommand{\fX}{\mathfrak{X}}
+\newcommand{\fY}{\mathfrak{Y}}
+\newcommand{\fZ}{\mathfrak{Z}}
+
+% For faster typesetting of the monospace letters
+\newcommand{\mA}{\texttt{A}}
+\newcommand{\mB}{\texttt{B}}
+\newcommand{\mC}{\texttt{C}}
+\newcommand{\mD}{\texttt{D}}
+\newcommand{\mE}{\texttt{E}}
+\newcommand{\mF}{\texttt{F}}
+\newcommand{\mG}{\texttt{G}}
+\newcommand{\mH}{\texttt{H}}
+\newcommand{\mI}{\texttt{I}}
+\newcommand{\mJ}{\texttt{J}}
+\newcommand{\mK}{\texttt{K}}
+\newcommand{\mL}{\texttt{L}}
+\newcommand{\mM}{\texttt{M}}
+\newcommand{\mN}{\texttt{N}}
+\newcommand{\mO}{\texttt{O}}
+\newcommand{\mP}{\texttt{P}}
+\newcommand{\mQ}{\texttt{Q}}
+\newcommand{\mR}{\texttt{R}}
+\newcommand{\mS}{\texttt{S}}
+\newcommand{\mT}{\texttt{T}}
+\newcommand{\mU}{\texttt{U}}
+\newcommand{\mV}{\texttt{V}}
+\newcommand{\mW}{\texttt{W}}
+\newcommand{\mX}{\texttt{X}}
+\newcommand{\mY}{\texttt{Y}}
+\newcommand{\mZ}{\texttt{Z}}
+
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+}{}
+\nottoggle{nomath}{
+% Sets {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\one}{\mathds{1}} % Set-Characteristic function
+
+\AtBeginDocument{\renewcommand{\subset}{\subseteq}} % Override the default subset command
+\AtBeginDocument{\renewcommand{\supset}{\supseteq}} % Override the default supset command
+
+\providecommand{\complement}{}
+\AtBeginDocument{\renewcommand{\complement}[1]{{#1}^{c}}} % Set complement
+
+\providecommand{\closure}{}
+\AtBeginDocument{\renewcommand{\closure}[1]{\overline{#1}}} % Topological closure
+
+\newcommand{\interior}[1]{\mathring{#1}}                       % Topological interior
+\newcommand{\card}[1]{\left\vert#1\right\vert}                 % Cardinality
+\newcommand{\until}{,\allowbreak \ldots,\allowbreak}           % Listing a, ..., b
+
+\newcommand{\set}[1]{\left\lbrace#1\right\rbrace}              % Set
+\newcommand{\cset}[2]{\left\lbrace#1\,\mid\,#2\right\rbrace}   % Set with conditions (vertical line)
+\newcommand{\csetc}[2]{\left\lbrace#1\,:\,#2\right\rbrace}   % Set with conditions (vertical line)
+\newcommand{\bigset}[1]{\bigl\lbrace#1\bigr\rbrace}            % Big Set
+\newcommand{\bigcset}[2]{\bigl\lbrace#1\,\mid\,#2\bigr\rbrace} % Big Set with conditions (vertical line)
+\newcommand{\bigcsetc}[2]{\bigl\lbrace#1\,:\,#2\bigr\rbrace} % Big Set with conditions (vertical line)
+\newcommand{\tup}[1]{\left(#1\right)}                          % Tuple
+
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Topology {{{{{
+\newcommand{\homot}[1][]{\overset{#1}{\simeq}}
+% }}}}}
+% Probability {{{{{
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Leb}{Leb}
+\DeclareMathOperator{\Vol}{Vol}
+% }}}}}
+% Trigonometric functions {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\DeclareMathOperator{\arsinh}{arsinh}
+\DeclareMathOperator{\arcosh}{arcosh}
+\DeclareMathOperator{\artanh}{artanh}
+
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Analysis {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Derivatives
+\DeclareMathOperator{\De}{\thinspace{\mathrm{D}}}    % Derivative
+\DeclareMathOperator{\boldpartial}{\pmb{\partial}}   % (Bold) partial derivative
+% \DeclareMathOperator{\de}{\thinspace{\mathrm{d}}}    % Derivative
+\DeclareMathOperator{\de}{\mathrm{d}}                % Derivative
+\DeclareMathOperator{\dvol}{\,\operatorname{dvol}}   % Volumetric integration
+\newcommand{\euler}{\operatorname{e}}       % Euler's constant
+\DeclareMathOperator{\graph}{\operatorname{graph}}   % Graph
+\DeclareMathOperator{\im}{im}                        % Image / Imaginary Part
+\newcommand{\laplace}{\Delta}                        % Laplace operator
+\DeclareMathOperator{\metric}{\operatorname{d}}      % Metric
+\DeclareMathOperator{\re}{Re}                        % Real part
+\DeclareMathOperator{\rot}{rot}                      % Rotation/ curl
+\DeclareMathOperator{\vol}{vol}                      % Volumetric integration
+\DeclareMathOperator{\ind}{ind}                      % Winding number
+
+% Don't make this an operator. It will mess up the spacing
+\newcommand{\ii}{\iota}                              % Imaginary unit
+\newcommand{\ceiling}[1]{\left\lceil#1\right\rceil}  % Ceiling function
+\newcommand{\floor}[1]{\left\lfloor#1\right\rfloor}  % Floor function
+\newcommand{\restr}[2]{\ensuremath{#1|_{#2}}}        % Restriction
+\newcommand{\bigrestr}[2]{\ensuremath{#1\big|_{#2}}} % Restriction
+\newcommand{\at}[1]{\ensuremath{\big|_{#1}}}         % At
+\newcommand{\support}[1][]{\operatorname{supp}_{#1}} % [Named] Support
+\newcommand{\vc}[1]{\mathbf{#1}}                     % Vector
+\newcommand{\weak}{\textsuperscript*}                % Weak decoration
+
+\let\physicsdivergence\divergence                    % Override the \divergence command from the physics package
+\renewcommand{\divergence}{\mathrm{div}}             % Divergence
+
+\DeclareMathOperator{\Per}{Per}                      % Set of periods of a function
+\newcommand{\conjugate}[1]{\overline{#1}} % Complex conjuage
+
+\DeclareMathOperator{\sign}{\operatorname{sign}}     % sign function
+
+\DeclareMathOperator{\res}{res}
+
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Algebra {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\DeclareMathOperator{\Adj}{Adj}                      % Adjunct matrix
+\DeclareMathOperator{\Aut}{Aut}                      % Automorphism
+\DeclareMathOperator{\End}{End}                      % Endomorphism
+\DeclareMathOperator{\Char}{char}                    % (Field) Characteristic
+\DeclareMathOperator{\Frac}{Frac}                    % Fraction field
+\DeclareMathOperator{\Der}{Der}                      % Derivation
+\DeclareMathOperator{\Gal}{Gal}                      % Galois group
+\DeclareMathOperator{\Hom}{Hom}                      % Homomorphisms
+\DeclareMathOperator{\Mat}{Mat}                      % Matrices
+\DeclareMathOperator{\Obj}{Obj}                      % Object
+\DeclareMathOperator{\Orb}{Orb}                      % Orbit
+\DeclareMathOperator{\Stab}{Stab}                    % Stabiliser
+\DeclareMathOperator{\Rank}{Rank}                    % Rank
+\DeclareMathOperator{\Null}{Null}                    % Null
+\DeclareMathOperator{\Nullity}{Nullity}              % Null
+\DeclareMathOperator{\Sym}{Sym}                      % Symmetric
+\DeclareMathOperator{\coker}{coker}                  % Cokernel
+\DeclareMathOperator{\compose}{\circ}                % Composition
+\DeclareMathOperator{\Span}{Span}                    % Span/Linear hull
+\DeclareMathOperator{\id}{id}                        % Identity
+\DeclareMathOperator{\jac}{Jac}                      % Jacobson Radical
+\DeclareMathOperator{\krulldim}{\dim_\mathrm{Krull}} % Krull dimension
+\DeclareMathOperator{\codim}{codim}                  % Codimension
+\DeclareMathOperator{\lcm}{lcm}                      % Lowest common denominator
+\DeclareMathOperator{\nil}{nil}                      % Nilradical
+\DeclareMathOperator{\ord}{ord}                      % Order
+\DeclareMathOperator{\rad}{rad}                      % Jacobson Radical
+\DeclareMathOperator{\sgn}{sgn}                      % Sign
+\DeclareMathOperator{\tor}{tor}                      % Torsion
+\DeclareMathOperator{\Tor}{Tor}                      % Torsion (capitalised)
+\DeclareMathOperator{\Eig}{Eig}                      % Eigenspace
+\DeclareMathOperator{\Class}{Cl}                     % Class group
+\DeclareMathOperator{\Cl}{Cl}                        % Class group
+\DeclareMathOperator{\Ell}{Ell}                      % Elliptic curves
+\DeclareMathOperator{\Spm}{Spm}                      % Spm functor (milne)
+\newcommand{\subgroup}{\leqslant}                    % Subgroup
+
+\let\physicsev\ev                                    % Override \ev from the physics package
+\renewcommand{\ev}{\mathrm{ev}}                      % Evaluation
+\let\physicseval\eval                                % Override \eval from the physics package
+\renewcommand{\eval}{\mathrm{eval}}                  % Evaluation
+
+\newcommand{\Ass}[1][]{\operatorname{Ass}_{#1}}                          % Associated prime
+\newcommand{\Bil}[1][]{\operatorname{Bil}_{#1}}                          % Bilinear maps
+\newcommand{\Tens}[1][]{\mathbin{\bigotimes_{\scriptscriptstyle{#1}}}}   % Tensor Product
+\newcommand{\Ann}[1][]{\operatorname{Ann}_{#1}}                          % Annihilator
+\newcommand{\cl}[1]{\overline{#1}}                                       % Class of representatives
+\newcommand{\height}[1][]{\operatorname{ht}_{#1}}                        % Prime ideal height
+\newcommand{\nHom}[4]{\Hom_{(#1-\mathrm{#2})} \left(#3,\, #4 \right)}    % Named homomorphisms
+\newcommand{\scalarprod}[2]{\ensuremath{\left\langle#1,#2\right\rangle}} % Scalar product
+\newcommand{\hull}[1]{\ensuremath{\left\langle\,#1\,\right\rangle}}      % Span
+\newcommand{\tens}[1][]{\otimes_{\scriptscriptstyle{#1}}}                % Tensor product
+\newcommand{\trdeg}[1][]{\operatorname{trdeg}_{#1}}                      % Transcendence degree
+\newcommand{\field}[1]{#1}                                               % Field
+
+% Styled arrows
+\renewcommand{\to}[1][]{\xrightarrow{#1}}                                 % Overloaded \to for named arrow
+\newcommand{\into}[1][]{\xhookrightarrow{#1}}                             % Injection/ into map
+\newcommand{\onto}[1][]{\xrightarrow{#1}\mathrel{\mkern-14mu}\rightarrow} % Surjection/ onto map
+\newcommand{\isoto}{\xrightarrow{\sim}}                                   % Isomorpism map
+
+% Fractions
+% Dynamically decide whether to place elements in fraction above each other or
+% next to each other based on whether in display mode or not.
+\let\defaultfrac\frac
+\renewcommand{\frac}[2]{\mathchoice{\defaultfrac{#1}{#2}}{#1/#2}{#1/#2}{#1/#2}}
+\newcommand{\ifrac}[2]{#1/#2}
+
+% Quotients
+% Tool for moving maths expressions
+\makeatletter
+\newcommand{\raisemath}[1]{\mathpalette{\raisemAth{#1}}}
+\newcommand{\raisemAth}[3]{\raisebox{#1}{$#2#3$}}
+\makeatother
+% Dynamically decide how much space should be left between operands and how much
+% they should be raised, based on whether in display mode or not.
+% \newcommand{\quot}[2]{%
+%   \mathchoice
+%     {\raisemath{0.4ex}{#1} \big/ \raisemath{-0.4ex}{#2}}%
+%     {\scalebox{0.9}{$\raisemath{0.1ex}{#1}/\raisemath{-0.3ex}{#2}$}}%
+%     {#1/#2}%
+%     {#1/#2}%
+% }
+\newcommand{\quot}[2]{%
+  \mathchoice
+    {\raisemath{0.4ex}{#1} \big/ \raisemath{-0.4ex}{#2}}%
+    {\raisemath{0.1ex}{#1}/\raisemath{-0.3ex}{#2}}%
+    {#1/#2}%
+    {#1/#2}%
+}
+\newcommand{\q}[2]{\quot{#1}{#2}} % Quotients
+
+\newcommand{\quotl}[2]{%
+  \mathchoice
+    {\raisemath{-0.4ex}{#2} \big\backslash \raisemath{0.4ex}{#1}}%
+    {\raisemath{-0.1ex}{#2}\backslash\raisemath{0.3ex}{#1}}%
+    {#2\backslash#1}%
+    {#2\backslash#1}%
+}
+\newcommand{\ql}[2]{\quotl{#1}{#2}} % Quotients
+
+\newcommand{\divides}{\mid}
+\newcommand{\ndivides}{\not\mid}
+
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Number Theory {{{{{
+\DeclareMathOperator{\li}{li}
+\DeclareMathOperator{\Div}{Div}
+\DeclareMathOperator{\Cusps}{Cusps}
+% Bit of a hack using negative space
+\newcommand{\jacobi}[2]{%
+  \mathchoice
+  {\left(\mkern-8mu\left(\defaultfrac{#1}{#2}\right)\mkern-8mu\right)}%
+  {\left(\mkern-0mu\left(#1/#2\right)\mkern-0mu\right)}%
+  {\left(\mkern-3mu\left(#1/#2\right)\mkern-3mu\right)}%
+  {\left(\mkern-3mu\left(#1/#2\right)\mkern-3mu\right)}%
+}
+\newcommand{\slashby}[2]{|_{#1}#2}
+\DeclareMathOperator{\Reg}{Reg} % Field regulator
+\DeclareMathOperator{\disc}{disc} % Field discriminant
+% }}}}}
+% Rings, Fields and Groups {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\Poly}{Poly}
+\newcommand{\A}{\mathbb{A}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\D}{\mathbb{D}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\F}{\mathbb{F}}
+\let\defaultH\H
+\renewcommand{\H}{\mathbb{H}}
+\newcommand{\K}{\mathbb{K}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\NZ}{\mathbb{N}_0}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Zn}{\quot{\mathbb{Z}}{n\mathbb{Z}}}
+\newcommand{\Zp}{\quot{\mathbb{Z}}{p\mathbb{Z}}}
+
+\DeclareMathOperator{\Rk}{\mathbb{R}^k}
+\DeclareMathOperator{\Rm}{\mathbb{R}^m}
+% \DeclareMathOperator{\Rn}{\mathbb{R}^n}
+
+\DeclareMathOperator{\GL}{GL}
+\DeclareMathOperator{\SL}{SL}
+\DeclareMathOperator{\PSL}{PSL}
+\DeclareMathOperator{\SO}{SO}
+
+\let\defaultP\P % Override the default \P command
+\renewcommand{\P}{\mathbb{P}}
+
+\newcommand{\algclosure}[1]{{#1}^{\textrm{al}}}
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Computing {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Problems
+\DeclareMathOperator{\SAT}{SAT}
+\DeclareMathOperator{\CLIQUE}{CLIQUE}
+
+% Time-complexity
+\DeclareMathOperator{\Time}{Time}
+\DeclareMathOperator{\TIME}{TIME}
+
+% Memory-complexity
+\DeclareMathOperator{\Space}{Space}
+\DeclareMathOperator{\SPACE}{SPACE}
+
+% Complexity classes
+\DeclareMathOperator{\PTIME}{P}
+\DeclareMathOperator{\NPTIME}{NP}
+\DeclareMathOperator{\DLOG}{DLOG}
+\DeclareMathOperator{\PSPACE}{PSPACE}
+\DeclareMathOperator{\EXPTIME}{EXPTIME}
+
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% General Typesetting {{{{{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\til}[1]{\widetilde{#1}}
+\newcommand{\defeq}{\overset{\scriptscriptstyle\mathrm{def.}}{=}}
+\newcommand{\qefed}{\overset{\reflectbox{$\scriptscriptstyle\mathrm{def.}$}}{=}}
+\newcommand{\exeq}{\overset{\scriptscriptstyle\mathrm{!}}{=}}
+\newcommand{\absleq}{\overset{\abs{\cdot}}{\leq}}
+\newcommand{\normleq}{\overset{\norm{\cdot}}{\leq}}
+
+% }}}}} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Algebraic Geometry {{{{{
+% Birational maps
+\newcommand{\birational}{\mathbin{\tikz [baseline=-0.25ex,-latex, ->, densely dashed] \draw [->, densely dashed] (0pt,0.5ex) -- (1.3em,0.5ex); }}
+% Category of irreducible $k$-varieties and rational maps between them
+\DeclareMathOperator{\Rat}{Rat}
+\DeclareMathOperator{\Bir}{Bir}
+\DeclareMathOperator{\Bl}{Bl} % Blow up
+\DeclareMathOperator{\Spec}{Spec} % Blow up
+\DeclareMathOperator{\Sing}{Sing} % Singular locus
+\DeclareMathOperator{\Pic}{Pic} % Picard group
+\let\defaultsp\sp
+\renewcommand{\sp}{\mathrm{sp}} % Underlying topological space of a scheme
+\newcommand{\opp}{\mathrm{opp}}
+% }}}}}
+% Algebraic Topology {{{{{
+\newcommand{\bound}{\partial}
+\newcommand{\face}[2]{\ensuremath{#1}|_{#2}}    % Restriction
+\DeclareMathOperator{\diam}{diam}
+% }}}}}
+}{}
+
+% Debug {{{{{
+\iftoggle{debug}{%
+  \AtBeginDocument{%
+    {% Must be inside {} to ensure settings are local
+
+    \pagestyle{empty}
+
+    \begin{mdframed}
+
+      \setlength{\parindent}{0cm}
+
+      \section*{prreamble Debugging Information}
+
+      Configured options
+
+      \begin{center}
+        \setlength{\tabcolsep}{2em}
+        \begin{tabular}{l | l}
+          nobreaks     & \iftoggle{nobreaks}{\green{True}}{\red{False}}     \\
+          print        & \iftoggle{print}{\green{True}}{\red{False}}        \\
+          scdefs       & \iftoggle{scdefs}{\green{True}}{\red{False}}       \\
+          scthms       & \iftoggle{scthms}{\green{True}}{\red{False}}       \\
+          uldefobjs    & \iftoggle{uldefobjs}{\green{True}}{\red{False}}    \\
+
+          concmath         & \iftoggle{concmath}{\green{True}}{\red{False}}     \\
+          ~~~~concroman    & \iftoggle{concroman}{\green{True}}{\red{False}}    \\
+          ~~~~centertitles & \iftoggle{centertitles}{\green{True}}{\red{False}} \\
+          ~~~~scdefobjs    & \iftoggle{scdefobjs}{\green{True}}{\red{False}}    \\
+          ~~~~scemph       & \iftoggle{scemph}{\green{True}}{\red{False}}       \\
+          ~~~~uldefs       & \iftoggle{uldefs}{\green{True}}{\red{False}}       \\
+          ~~~~ulthms       & \iftoggle{ulthms}{\green{True}}{\red{False}}       \\
+        \end{tabular}
+      \end{center}
+
+      \vspace{3ex} \hrule \vspace{3ex}
+
+      \begin{theorem*}
+        This is an (unnumbered) example theorem.
+      \end{theorem*}
+
+      \begin{definition*}[Example]
+        This is an (unnumbered) example definition, defining \define{something}.
+      \end{definition*}
+
+      \begin{remark}
+        This is an example remark.
+      \end{remark}
+
+      \vspace{3ex} \hrule \vspace{3ex}
+
+      \texttt{{\textbackslash}textbf\{This is bold face text\}}
+
+      \textbf{This is bold face text}.
+
+      \vspace{1ex}
+
+      \texttt{{\textbackslash}textit\{This is italic text\}}
+
+      \textit{This is italic text}.
+
+      \vspace{1ex}
+
+      \texttt{{\textbackslash}emph\{This is emphasised text\}}
+
+      \emph{This is emphasised text}.
+
+      \vspace{1ex}
+
+      \texttt{{\textbackslash}texit\{This is {\textbackslash}emph\{emphasised\}
+      text inside italic text\}}
+
+      \textit{This is \emph{emphasised} text inside italic text}.
+
+      \vspace{1ex}
+
+      \texttt{{\textbackslash}textbf\{This is {\textbackslash}emph\{emphasised\} text inside bold text\}.}
+
+      \textbf{This is \emph{emphasised} text inside bold text}.
+
+      \vspace{3ex} \hrule \vspace{3ex}
+
+      This is an example link colour \href{https://tug.org}{https://tug.org}.
+
+      \vspace{3ex} \hrule \vspace{3ex}
+
+      \iftoggle{geometryloadedbefore}{%
+        \green{Geometry was loaded before prreamble}
+      }{%
+        \ifdef{\newgeometry}{%
+          \red{Geometry was loaded after prreamble}
+        }{%
+          \green{Geometry was not loaded}
+        }
+      }
+    \end{mdframed}
+    }
+    \setcounter{page}{0}
+  }
+}{}
+% }}}}}
+
+\newcommand{\email}[1]{\href{mailto:#1}{#1}}
+\newcommand{\emailtt}[1]{\href{mailto:#1}{\texttt{#1}}}
+
+\newcommand{\sectionnn}[1]{
+\section*{#1}
+\phantomsection
+\addcontentsline{toc}{section}{\protect\numberline{}#1}
+}
+
+\endinput
